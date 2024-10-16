@@ -1,8 +1,10 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function App() {
   const [room, setRoom] = useState("");
   const [name, setName] = useState("");
+  const navigate = useNavigate();
 
   const handleJoin = async () => {
     try {
@@ -17,7 +19,7 @@ export default function App() {
       const data = await response.json();
 
       if (data.success) {
-        alert(`Joined room: ${data.roomName}`);
+        navigate(`/${data.roomName}`);
       } else {
         alert("Failed joining room. Try again later.");
       }
