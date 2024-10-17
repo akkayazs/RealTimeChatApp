@@ -148,7 +148,7 @@ export default function App() {
             >
               Sign Out
             </button>
-            <hr className="mt-6"></hr>
+            <hr className="my-6"></hr>
           </div>
         ) : (
           <p className="text-sm italic">
@@ -181,10 +181,12 @@ export default function App() {
             </button>
           </fieldset>
 
-          <div className="w-full max-w-md text-center">
-            <h2 className="underline font-bold text-center mb-4">
-              Popular Rooms
-            </h2>
+          <hr className="my-6"></hr>
+
+          <h2 className="underline font-bold text-center mb-6">
+            Popular Rooms
+          </h2>
+          <div className="w-full text-center flex flex-row flex-wrap justify-center gap-4">
             {rooms.map((room) => (
               <div
                 key={room.name}

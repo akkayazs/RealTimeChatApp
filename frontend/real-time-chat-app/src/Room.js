@@ -79,19 +79,28 @@ export default function Room() {
 
       <div className="h-full w-6/12 m-auto block pt-4">
         {messages.map((message, index) => (
-          <div key={index}>
-            <span className="font-bold">{message.user}</span>
-            <span className="ml-4 text-xs text-gray-600">
-              {new Date(message.timestamp).toLocaleTimeString([], {
-                hour: "2-digit",
-                minute: "2-digit",
-                hour12: true,
-              })}
-            </span>
-            <div className="border border-gray-200 bg-gray-100 w-full max-w-[320px] rounded-e-xl rounded-es-xl">
-              <div className="text-sm p-2.5 text-gray-900 text-center">
-                {message.message}
-              </div>
+          <div
+            key={index}
+            className={`flex mb-4 ${
+              message.user === userName ? "justify-end" : "justify-start"
+            }`}
+          >
+            <div
+              className={`${
+                message.user === userName
+                  ? "bg-blue-400 text-white"
+                  : "bg-gray-100 text-black"
+              } p-2.5 rounded-lg max-w-[320px]`}
+            >
+              <span className="font-bold">{message.user}</span>
+              <span className="ml-4 text-xs text-gray-600">
+                {new Date(message.timestamp).toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  hour12: true,
+                })}
+              </span>
+              <div className="mt-1">{message.message}</div>
             </div>
           </div>
         ))}
