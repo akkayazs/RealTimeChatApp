@@ -4,6 +4,7 @@ const socketIo = require("socket.io");
 const mongoose = require("mongoose");
 const cors = require("cors");
 require("dotenv").config();
+const jwt = require("jsonwebtoken");
 
 const app = express();
 const server = http.createServer(app);
@@ -11,6 +12,13 @@ const io = socketIo(server);
 
 app.use(cors());
 app.use(express.json());
+
+// User Schema
+const userSchema = new mongoose.Schema({
+  username: String,
+  password: String,
+});
+const User = mongoose.model("User", userSchema);
 
 // Room Schema
 const roomSchema = new mongoose.Schema({
@@ -43,6 +51,28 @@ io.on("connection", (socket) => {
   socket.on("sendMessage", (message) => {
     io.emit("receiveMessage", message);
   });
+});
+
+// Signing up a user
+app.post("/sign-up", async (req, res) => {
+  const { username, hashedPassword } = req.body;
+
+  try {
+    const newUser = new User({
+      username: username,
+      password: hashedPassword,
+    });
+    await newUser.save();
+
+    const token = jwt.sign({ username }, process.env.JWT_SECRET, {
+      expiresIn: "1h",
+    });
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error("Error signing up:", error);
+    res.status(500).json({ success: false, message: "Internal server error." });
+  }
 });
 
 // Joining a room

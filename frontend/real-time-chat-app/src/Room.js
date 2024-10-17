@@ -1,12 +1,20 @@
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useUser } from "./UserContext";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function Room() {
   const { roomName } = useParams();
   const { userName } = useUser();
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([]);
+  const navigate = useNavigate();
+
+  // If there is no username, if the user is not signed in, redirect to homepage
+  useEffect(() => {
+    if (!userName) {
+      navigate("/");
+    }
+  }, [userName, navigate]);
 
   // Sending a message
   const handleSendMessage = async () => {
