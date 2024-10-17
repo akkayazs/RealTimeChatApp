@@ -9,8 +9,31 @@ const SignUp = () => {
   const navigate = useNavigate();
 
   const handleSignUp = async () => {
+    if (!username || !password) {
+      alert("Username and password are required.");
+      return;
+    }
+
+    const response = await fetch(
+      `http://localhost:5000/check-username/${username}`
+    );
+    const data = await response.json();
+    if (data.exists) {
+      alert("Username already exists.");
+      return;
+    }
+
+    const passwordRegex = /(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*]).{8,}/;
+    if (!passwordRegex.test(password)) {
+      alert(
+        "Password must be at least 12 characters long and include uppercase, lowercase, number, and special character."
+      );
+      return;
+    }
+
     var salt = bcrypt.genSaltSync(10);
     const hashedPassword = bcrypt.hashSync(password, salt);
+
     try {
       const response = await fetch("http://localhost:5000/sign-up", {
         method: "POST",
@@ -31,6 +54,7 @@ const SignUp = () => {
       }
     } catch (error) {
       console.error(error);
+      alert("Error occurred while signing up.");
     }
   };
 
@@ -55,14 +79,16 @@ const SignUp = () => {
         </label>
         <input
           id="password"
-          type="text"
+          type="password"
           placeholder="Enter your password here"
           className="rounded border border-gray-800 px-10 py-2 text-center"
-          maxLength={100}
+          pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*]).{8,}"
+          title="Password must be at least 8 characters long, and include at least one uppercase letter, one lowercase letter, one number, and one special character."
           required
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         ></input>
+
         <button
           className="bg-gray-600 text-gray-200 px-16 py-2 rounded hover:bg-gray-800 hover:text-white mt-6"
           onClick={handleSignUp}

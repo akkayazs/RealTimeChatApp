@@ -5,6 +5,7 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 require("dotenv").config();
 const jwt = require("jsonwebtoken");
+const bcrypt = require("bcryptjs-react");
 
 const app = express();
 const server = http.createServer(app);
@@ -53,6 +54,38 @@ io.on("connection", (socket) => {
   });
 });
 
+// Signing in a user
+app.post("/sign-in", async (req, res) => {
+  const { username, password } = req.body;
+
+  try {
+    const user = await User.findOne({ username });
+
+    if (!user) {
+      return res
+        .status(401)
+        .json({ success: false, message: "Invalid credentials." });
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+
+    if (!isPasswordValid) {
+      return res
+        .status(401)
+        .json({ success: false, message: "Invalid credentials." });
+    }
+
+    const token = jwt.sign({ username }, process.env.JWT_SECRET, {
+      expiresIn: "1h",
+    });
+
+    res.json({ success: true, token });
+  } catch (error) {
+    console.error("Error logging in:", error);
+    res.status(500).json({ success: false, message: "Internal server error." });
+  }
+});
+
 // Signing up a user
 app.post("/sign-up", async (req, res) => {
   const { username, hashedPassword } = req.body;
@@ -73,6 +106,17 @@ app.post("/sign-up", async (req, res) => {
     console.error("Error signing up:", error);
     res.status(500).json({ success: false, message: "Internal server error." });
   }
+});
+
+// Check if username exists
+app.get("/check-username/:username", async (req, res) => {
+  const { username } = req.params;
+  const user = await User.findOne({ username });
+
+  if (user) {
+    return res.json({ exists: true });
+  }
+  return res.json({ exists: false });
 });
 
 // Joining a room
