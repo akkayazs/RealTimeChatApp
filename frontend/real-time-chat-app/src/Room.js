@@ -1,13 +1,16 @@
 import { useParams } from "react-router-dom";
+import { useUser } from "./UserContext";
 
 export default function Room() {
   const { roomName } = useParams();
+  const { userName } = useUser();
 
   return (
     <div class="flex flex-col justify-between h-screen">
       <div class="text-center mt-4 mx-2">
         <h1 class="text-2xl font-bold">
-          Welcome to <span class="text-4xl">{roomName}</span> chat room
+          Welcome to <span class="text-4xl">{roomName}</span> chat room{" "}
+          <span class="text-4xl">{userName}</span>
         </h1>
         <p class="text-sm italic">Start typing and talking with people!</p>
       </div>

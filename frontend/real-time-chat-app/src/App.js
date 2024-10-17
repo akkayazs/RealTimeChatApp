@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useUser } from "./UserContext";
 
 export default function App() {
   const [room, setRoom] = useState("");
   const [name, setName] = useState("");
   const navigate = useNavigate();
+  const { setUserName } = useUser();
 
   const handleJoin = async () => {
     try {
@@ -19,6 +21,7 @@ export default function App() {
       const data = await response.json();
 
       if (data.success) {
+        setUserName(name);
         navigate(`/${data.roomName}`);
       } else {
         alert("Failed joining room. Try again later.");
