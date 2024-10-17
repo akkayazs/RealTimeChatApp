@@ -9,6 +9,7 @@ export default function App() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [room, setRoom] = useState("");
+  const [rooms, setRooms] = useState([]);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -20,6 +21,8 @@ export default function App() {
       localStorage.clear();
       setIsAuthenticated(false);
     }
+
+    fetchRooms();
   }, [setUserName]);
 
   // Sign In
@@ -83,8 +86,27 @@ export default function App() {
     navigate("/signup");
   };
 
+  // Fetch all rooms
+  const fetchRooms = async () => {
+    try {
+      const response = await fetch("http://localhost:5000/rooms");
+      const data = await response.json();
+
+      if (data.success) {
+        setRooms(data.rooms);
+      }
+    } catch (error) {
+      console.error("Error fetching rooms:", error);
+    }
+  };
+
   // Joining a Room
-  const handleJoin = async () => {
+  const handleJoin = async (roomName) => {
+    if (!roomName) {
+      alert("Room name cannot be empty.");
+      return;
+    }
+
     try {
       const storedUsername = localStorage.getItem("username");
       const response = await fetch("http://localhost:5000/join-room", {
@@ -92,7 +114,7 @@ export default function App() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ room, storedUsername }),
+        body: JSON.stringify({ room: roomName, storedUsername }),
       });
 
       const data = await response.json();
@@ -136,27 +158,47 @@ export default function App() {
       </div>
 
       {isAuthenticated ? (
-        <fieldset className="flex flex-col items-center gap-2">
-          <label for="room" className="italic">
-            Room Name
-          </label>
-          <input
-            id="room"
-            type="text"
-            placeholder="Enter the room name here"
-            className="rounded border border-gray-800 px-10 py-2 text-center"
-            maxLength={100}
-            required
-            value={room}
-            onChange={(e) => setRoom(e.target.value)}
-          ></input>
-          <button
-            className="bg-gray-600 text-gray-200 px-16 py-2 rounded hover:bg-gray-800 hover:text-white mt-6"
-            onClick={handleJoin}
-          >
-            Join
-          </button>
-        </fieldset>
+        <div>
+          <fieldset className="flex flex-col items-center gap-2">
+            <label for="room" className="italic">
+              Room Name
+            </label>
+            <input
+              id="room"
+              type="text"
+              placeholder="Enter the room name here"
+              className="rounded border border-gray-800 px-10 py-2 text-center"
+              maxLength={100}
+              required
+              value={room}
+              onChange={(e) => setRoom(e.target.value)}
+            ></input>
+            <button
+              className="bg-gray-600 text-gray-200 px-16 py-2 rounded hover:bg-gray-800 hover:text-white mt-6"
+              onClick={() => handleJoin(room)}
+            >
+              Join
+            </button>
+          </fieldset>
+
+          <div className="w-full max-w-md text-center">
+            <h2 className="underline font-bold text-center mb-4">
+              Popular Rooms
+            </h2>
+            {rooms.map((room) => (
+              <div
+                key={room.name}
+                className="p-4 bg-gray-100 rounded shadow mb-4 cursor-pointer hover:bg-gray-200"
+                onClick={() => handleJoin(room.name)}
+              >
+                <p>
+                  <span className="font-semibold">{room.name}</span> (User
+                  Count: {room.userCount})
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
       ) : (
         <div>
           <button

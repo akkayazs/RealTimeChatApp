@@ -119,6 +119,21 @@ app.get("/check-username/:username", async (req, res) => {
   return res.json({ exists: false });
 });
 
+// Get all room names and user counts, sorted by user count
+app.get("/rooms", async (req, res) => {
+  try {
+    const rooms = await Room.find({}, "name users");
+    const roomData = rooms
+      .map((room) => ({ name: room.name, userCount: room.users.length }))
+      .sort((a, b) => b.userCount - a.userCount);
+
+    res.json({ success: true, rooms: roomData });
+  } catch (error) {
+    console.error("Error fetching rooms:", error);
+    res.status(500).json({ success: false, message: "Internal server error." });
+  }
+});
+
 // Joining a room
 app.post("/join-room", async (req, res) => {
   const { room, storedUsername } = req.body;
