@@ -121,20 +121,20 @@ app.get("/check-username/:username", async (req, res) => {
 
 // Joining a room
 app.post("/join-room", async (req, res) => {
-  const { room, name } = req.body;
+  const { room, storedUsername } = req.body;
 
   try {
     let existingRoom = await Room.findOne({ name: room });
 
     if (existingRoom) {
-      if (!existingRoom.users.includes(name)) {
-        existingRoom.users.push(name);
+      if (!existingRoom.users.includes(storedUsername)) {
+        existingRoom.users.push(storedUsername);
         await existingRoom.save();
       }
     } else {
       const newRoom = new Room({
         name: room,
-        users: [name],
+        users: [storedUsername],
       });
       await newRoom.save();
     }

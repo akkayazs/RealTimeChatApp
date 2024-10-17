@@ -16,7 +16,29 @@ export default function Room() {
     }
   }, [userName, navigate]);
 
-  // Sending a message
+  useEffect(() => {
+    let isMounted = true;
+    const fetchMessages = async () => {
+      try {
+        const response = await fetch(
+          `http://localhost:5000/messages/${roomName}`
+        );
+        const data = await response.json();
+        if (isMounted && data.success) {
+          setMessages(data.messages);
+        }
+      } catch (error) {
+        console.error("Error fetching messages:", error);
+      }
+    };
+
+    fetchMessages();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [roomName]);
+
   const handleSendMessage = async () => {
     try {
       const response = await fetch("http://localhost:5000/send-message", {
@@ -29,7 +51,13 @@ export default function Room() {
 
       const data = await response.json();
       if (data.success) {
-        window.location.reload();
+        const newMessage = {
+          user: userName,
+          message,
+          timestamp: new Date(),
+        };
+        setMessages((prevMessages) => [...prevMessages, newMessage]);
+        setMessage("");
       } else {
         alert("Failed sending message. Try again later.");
       }
@@ -37,22 +65,6 @@ export default function Room() {
       console.error(error);
     }
   };
-
-  // Loading previous messages
-  const fetchMessages = async () => {
-    try {
-      const response = await fetch(
-        `http://localhost:5000/messages/${roomName}`
-      );
-      const data = await response.json();
-      if (data.success) {
-        setMessages(data.messages);
-      }
-    } catch (error) {
-      console.error("Error fetching messages:", error);
-    }
-  };
-  fetchMessages();
 
   return (
     <div className="flex flex-col justify-between h-screen">
@@ -62,14 +74,13 @@ export default function Room() {
           <span className="text-4xl">{userName}</span>
         </h1>
         <p className="text-sm italic">Start typing and talking with people!</p>
-        <hr></hr>
+        <hr />
       </div>
 
       <div className="h-full w-6/12 m-auto block pt-4">
         {messages.map((message, index) => (
           <div key={index}>
             <span className="font-bold">{message.user}</span>
-
             <span className="ml-4 text-xs text-gray-600">
               {new Date(message.timestamp).toLocaleTimeString([], {
                 hour: "2-digit",
@@ -77,7 +88,6 @@ export default function Room() {
                 hour12: true,
               })}
             </span>
-
             <div className="border border-gray-200 bg-gray-100 w-full max-w-[320px] rounded-e-xl rounded-es-xl">
               <div className="text-sm p-2.5 text-gray-900 text-center">
                 {message.message}
@@ -94,7 +104,7 @@ export default function Room() {
           required
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-        ></input>
+        />
         <button
           className="ml-4 bg-blue-400 text-gray-100 text-sm py-1 px-2 rounded hover:bg-blue-600"
           onClick={handleSendMessage}

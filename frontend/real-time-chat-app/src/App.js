@@ -10,6 +10,18 @@ export default function App() {
   const [password, setPassword] = useState("");
   const [room, setRoom] = useState("");
 
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    const storedUsername = localStorage.getItem("username");
+    if (token !== "undefined" && storedUsername) {
+      setIsAuthenticated(true);
+      setUserName(storedUsername);
+    } else {
+      localStorage.clear();
+      setIsAuthenticated(false);
+    }
+  }, [setUserName]);
+
   // Sign In
   const handleSignIn = async () => {
     if (!username || !password) {
@@ -48,6 +60,7 @@ export default function App() {
       if (data.success) {
         localStorage.setItem("token", data.token);
         localStorage.setItem("username", username);
+        setIsAuthenticated(true);
         window.location.reload();
       } else {
         alert("Failed signing in. Try again.");
@@ -60,6 +73,7 @@ export default function App() {
   // Sign Out
   const handleSignOut = () => {
     localStorage.clear();
+    setUserName("");
     setIsAuthenticated(false);
     window.location.reload();
   };
@@ -69,30 +83,22 @@ export default function App() {
     navigate("/signup");
   };
 
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    const storedUsername = localStorage.getItem("username");
-    if (token && storedUsername) {
-      setIsAuthenticated(true);
-      setUsername(storedUsername);
-    }
-  }, []);
-
   // Joining a Room
   const handleJoin = async () => {
     try {
+      const storedUsername = localStorage.getItem("username");
       const response = await fetch("http://localhost:5000/join-room", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ room, username }),
+        body: JSON.stringify({ room, storedUsername }),
       });
 
       const data = await response.json();
 
       if (data.success) {
-        setUserName(username);
+        setUserName(localStorage.getItem("username"));
         navigate(`/${data.roomName}`);
       } else {
         alert("Failed joining room. Try again later.");
