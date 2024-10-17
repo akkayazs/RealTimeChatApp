@@ -73,13 +73,13 @@ app.post("/join-room", async (req, res) => {
 
 // Sending a message on a room
 app.post("/send-message", async (req, res) => {
-  const { room, user, msg } = req.body;
+  const { roomName, userName, message } = req.body;
 
   try {
     const newMsg = new Message({
-      room: room,
-      user: user,
-      message: msg,
+      room: roomName,
+      user: userName,
+      message: message,
     });
     await newMsg.save();
     res.json({ success: true });
