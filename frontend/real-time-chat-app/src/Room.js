@@ -13,6 +13,7 @@ export default function Room() {
   const navigate = useNavigate();
   const [isTyping, setIsTyping] = useState(false);
   const [typingUser, setTypingUser] = useState("");
+  const [onlineUsers, setOnlineUsers] = useState([]);
 
   // If there is no username, if the user is not signed in, redirect to homepage
   useEffect(() => {
@@ -21,11 +22,18 @@ export default function Room() {
     } else {
       socket.emit("joinRoom", roomName);
 
+      // Online users
+      socket.emit("newUserAdd", { userName, roomName });
+      socket.on("getUsers", (users) => {
+        setOnlineUsers(users);
+      });
+
       socket.on("receiveMessage", (newMessage) => {
         setMessages((prevMessages) => [...prevMessages, newMessage]);
       });
 
       return () => {
+        socket.off("getUsers");
         socket.off("receiveMessage");
       };
     }
@@ -123,12 +131,20 @@ export default function Room() {
         </h1>
         <p className="text-sm italic">Start typing and talking with people!</p>
         <hr />
+        <div className="text-right pr-2">
+          <h2 className="font-semibold text-md underline">Online Users</h2>
+          <ul className="list-none">
+            {onlineUsers.map((user, index) => (
+              <li key={index} className="text-sm text-gray-600">
+                <span class="h-2 w-2 bg-green-400 rounded-full inline-block"></span>
+                {user.userName}
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
 
-      <div
-        id="msgs"
-        className="h-full w-6/12 m-auto block pt-4 overflow-y-scroll px-5"
-      >
+      <div className="h-full w-6/12 m-auto block pt-4 overflow-y-scroll px-5">
         {messages.map((message, index) => (
           <div
             key={index}

@@ -52,9 +52,35 @@ mongoose
   .then(() => console.log("MongoDB connected"))
   .catch((err) => console.log(err));
 
+let onlineUsers = [];
+let roomUsers = {};
+
 // Socket.io connection
 io.on("connection", (socket) => {
   console.log("New user connected");
+
+  // Online users
+  socket.on("newUserAdd", ({ userName, roomName }) => {
+    if (!roomUsers[roomName]) {
+      roomUsers[roomName] = [];
+    }
+
+    if (!roomUsers[roomName].some((user) => user.userName === userName)) {
+      roomUsers[roomName].push({ userName, socketId: socket.id });
+    }
+
+    io.to(roomName).emit("getUsers", roomUsers[roomName]);
+  });
+
+  socket.on("disconnect", () => {
+    for (const roomName in roomUsers) {
+      roomUsers[roomName] = roomUsers[roomName].filter(
+        (user) => user.socketId !== socket.id
+      );
+
+      io.to(roomName).emit("getUsers", roomUsers[roomName]);
+    }
+  });
 
   socket.on("sendMessage", async (messageData) => {
     console.log("Message received:", messageData);
