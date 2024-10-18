@@ -172,6 +172,11 @@ export default function App() {
               required
               value={room}
               onChange={(e) => setRoom(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  handleJoin(room);
+                }
+              }}
             ></input>
             <button
               className="bg-gray-600 text-gray-200 px-16 py-2 rounded hover:bg-gray-800 hover:text-white mt-6"

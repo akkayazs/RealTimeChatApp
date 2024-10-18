@@ -82,6 +82,7 @@ export default function Room() {
     if (message.trim()) {
       const messageData = { roomName, userName, message };
       socket.emit("sendMessage", messageData);
+      setMessage("");
     }
     /* try {
       const response = await fetch("http://localhost:5000/send-message", {
@@ -203,7 +204,12 @@ export default function Room() {
           required
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          onKeyDown={handleTyping}
+          onKeyDown={(e) => {
+            handleTyping();
+            if (e.key === "Enter") {
+              handleSendMessage();
+            }
+          }}
           onBlur={handleStopTyping}
         />
         <button
