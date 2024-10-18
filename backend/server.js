@@ -1,6 +1,6 @@
 const express = require("express");
 const http = require("http");
-const socketIo = require("socket.io");
+const { Server } = require("socket.io");
 const mongoose = require("mongoose");
 const cors = require("cors");
 require("dotenv").config();
@@ -9,7 +9,13 @@ const bcrypt = require("bcryptjs-react");
 
 const app = express();
 const server = http.createServer(app);
-const io = socketIo(server);
+
+const io = new Server(server, {
+  cors: {
+    origin: "http://localhost:3000",
+    methods: ["GET", "POST"],
+  },
+});
 
 app.use(cors());
 app.use(express.json());
@@ -49,8 +55,36 @@ mongoose
 // Socket.io connection
 io.on("connection", (socket) => {
   console.log("New user connected");
-  socket.on("sendMessage", (message) => {
-    io.emit("receiveMessage", message);
+
+  socket.on("sendMessage", async (messageData) => {
+    console.log("Message received:", messageData);
+
+    const { roomName, userName, message } = messageData;
+
+    const newMsg = new Message({
+      room: roomName,
+      user: userName,
+      message: message,
+    });
+    await newMsg.save();
+
+    io.to(roomName).emit("receiveMessage", {
+      user: userName,
+      message,
+      timestamp: new Date(),
+    });
+  });
+
+  socket.on("joinRoom", (roomName) => {
+    socket.join(roomName);
+  });
+
+  socket.on("typing", (data) => {
+    socket.to(data.room).emit("typing", { user: data.user });
+  });
+
+  socket.on("stopTyping", (data) => {
+    socket.to(data.room).emit("stopTyping");
   });
 });
 
@@ -161,22 +195,21 @@ app.post("/join-room", async (req, res) => {
 });
 
 // Sending a message on a room
-app.post("/send-message", async (req, res) => {
-  const { roomName, userName, message } = req.body;
-
-  try {
-    const newMsg = new Message({
-      room: roomName,
-      user: userName,
-      message: message,
-    });
-    await newMsg.save();
-    res.json({ success: true });
-  } catch (error) {
-    console.error("Error sending message:", error);
-    res.status(500).json({ success: false, message: "Internal server error." });
-  }
-});
+// app.post("/send-message", async (req, res) => {
+//   const { roomName, userName, message } = req.body;
+//   try {
+//     const newMsg = new Message({
+//       room: roomName,
+//       user: userName,
+//       message: message,
+//     });
+//     await newMsg.save();
+//     res.json({ success: true });
+//   } catch (error) {
+//     console.error("Error sending message:", error);
+//     res.status(500).json({ success: false, message: "Internal server error." });
+//   }
+// });
 
 // Loading previous messages on a room
 app.get("/messages/:room", async (req, res) => {

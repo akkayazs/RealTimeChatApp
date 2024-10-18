@@ -1,6 +1,9 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useUser } from "./UserContext";
 import { useState, useEffect } from "react";
+import io from "socket.io-client";
+
+const socket = io("http://localhost:5000");
 
 export default function Room() {
   const { roomName } = useParams();
@@ -8,14 +11,27 @@ export default function Room() {
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([]);
   const navigate = useNavigate();
+  const [isTyping, setIsTyping] = useState(false);
+  const [typingUser, setTypingUser] = useState("");
 
   // If there is no username, if the user is not signed in, redirect to homepage
   useEffect(() => {
     if (!userName) {
       navigate("/");
-    }
-  }, [userName, navigate]);
+    } else {
+      socket.emit("joinRoom", roomName);
 
+      socket.on("receiveMessage", (newMessage) => {
+        setMessages((prevMessages) => [...prevMessages, newMessage]);
+      });
+
+      return () => {
+        socket.off("receiveMessage");
+      };
+    }
+  }, [userName, navigate, roomName]);
+
+  // Load previous messages on a room
   useEffect(() => {
     let isMounted = true;
     const fetchMessages = async () => {
@@ -39,8 +55,13 @@ export default function Room() {
     };
   }, [roomName]);
 
+  // Sending a message on a room
   const handleSendMessage = async () => {
-    try {
+    if (message.trim()) {
+      const messageData = { roomName, userName, message };
+      socket.emit("sendMessage", messageData);
+    }
+    /* try {
       const response = await fetch("http://localhost:5000/send-message", {
         method: "POST",
         headers: {
@@ -48,7 +69,6 @@ export default function Room() {
         },
         body: JSON.stringify({ roomName, userName, message }),
       });
-
       const data = await response.json();
       if (data.success) {
         const newMessage = {
@@ -63,8 +83,36 @@ export default function Room() {
       }
     } catch (error) {
       console.error(error);
+    } */
+  };
+
+  // {x} is typing...
+  const handleTyping = () => {
+    if (!isTyping) {
+      socket.emit("typing", { user: userName, room: roomName });
+      setIsTyping(true);
     }
   };
+
+  const handleStopTyping = () => {
+    socket.emit("stopTyping", { room: roomName });
+    setIsTyping(false);
+  };
+
+  useEffect(() => {
+    socket.on("typing", (data) => {
+      setTypingUser(data.user);
+    });
+
+    socket.on("stopTyping", () => {
+      setTypingUser("");
+    });
+
+    return () => {
+      socket.off("typing");
+      socket.off("stopTyping");
+    };
+  }, [roomName]);
 
   return (
     <div className="flex flex-col justify-between h-screen">
@@ -77,7 +125,10 @@ export default function Room() {
         <hr />
       </div>
 
-      <div className="h-full w-6/12 m-auto block pt-4">
+      <div
+        id="msgs"
+        className="h-full w-6/12 m-auto block pt-4 overflow-y-scroll px-5"
+      >
         {messages.map((message, index) => (
           <div
             key={index}
@@ -106,13 +157,18 @@ export default function Room() {
         ))}
       </div>
 
-      <div className="mb-4 mx-2 text-center">
+      <div className="my-4 mx-2 text-center">
+        {typingUser && (
+          <div className="text-xs italic">{typingUser} is typing...</div>
+        )}
         <input
           placeholder="Enter your message here"
           className="border border-gray-600 py-1 px-2 rounded-md"
           required
           value={message}
           onChange={(e) => setMessage(e.target.value)}
+          onKeyDown={handleTyping}
+          onBlur={handleStopTyping}
         />
         <button
           className="ml-4 bg-blue-400 text-gray-100 text-sm py-1 px-2 rounded hover:bg-blue-600"
