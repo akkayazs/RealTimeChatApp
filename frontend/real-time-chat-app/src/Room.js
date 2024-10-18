@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useUser } from "./UserContext";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import io from "socket.io-client";
 
 const socket = io("http://localhost:5000");
@@ -14,6 +14,16 @@ export default function Room() {
   const [isTyping, setIsTyping] = useState(false);
   const [typingUser, setTypingUser] = useState("");
   const [onlineUsers, setOnlineUsers] = useState([]);
+  const messageEndRef = useRef(null);
+
+  // Scroll to bottom to see the newest messages
+  const scrollToBottom = () => {
+    messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
   // If there is no username, if the user is not signed in, redirect to homepage
   useEffect(() => {
@@ -180,6 +190,7 @@ export default function Room() {
             </div>
           </div>
         ))}
+        <div ref={messageEndRef} />
       </div>
 
       <div className="my-4 mx-2 text-center">
