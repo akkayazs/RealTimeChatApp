@@ -63,6 +63,10 @@ export default function Room() {
     };
   }, [roomName]);
 
+  const handleRedirectionHomepage = () => {
+    navigate("/");
+  };
+
   // Sending a message on a room
   const handleSendMessage = async () => {
     if (message.trim()) {
@@ -126,10 +130,15 @@ export default function Room() {
     <div className="flex flex-col justify-between h-screen">
       <div className="text-center mt-4 mx-2">
         <h1 className="text-2xl font-bold">
-          Welcome to <span className="text-4xl">{roomName}</span> chat room{" "}
-          <span className="text-4xl">{userName}</span>
+          Welcome to <span className="text-4xl">{roomName}</span> chat room.
         </h1>
         <p className="text-sm italic">Start typing and talking with people!</p>
+        <button
+          className="absolute top-0 right-0 m-2 bg-gray-600 text-gray-100 text-sm py-1 px-2 rounded hover:bg-gray-800"
+          onClick={handleRedirectionHomepage}
+        >
+          Change Room
+        </button>
         <hr />
         <div className="text-right pr-2">
           <h2 className="font-semibold text-md underline">Online Users</h2>
