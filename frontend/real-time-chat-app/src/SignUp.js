@@ -26,7 +26,7 @@ const SignUp = () => {
     const passwordRegex = /(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*]).{8,}/;
     if (!passwordRegex.test(password)) {
       alert(
-        "Password must be at least 12 characters long and include uppercase, lowercase, number, and special character."
+        "Password must be at least 8 characters long and include uppercase, lowercase, number, and special character."
       );
       return;
     }
@@ -46,8 +46,7 @@ const SignUp = () => {
       const data = await response.json();
 
       if (data.success) {
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("username", username);
+        alert("You successfully signed up. Please sign in now and continue.");
         navigate("/");
       } else {
         alert("Failed signing up. Try again later.");

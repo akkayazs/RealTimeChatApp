@@ -10,10 +10,10 @@ export default function App() {
   const [password, setPassword] = useState("");
   const [room, setRoom] = useState("");
   const [rooms, setRooms] = useState([]);
+  const storedUsername = localStorage.getItem("username");
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    const storedUsername = localStorage.getItem("username");
     if (token !== "undefined" && storedUsername) {
       setIsAuthenticated(true);
       setUserName(storedUsername);
@@ -23,7 +23,7 @@ export default function App() {
     }
 
     fetchRooms();
-  }, [setUserName]);
+  }, [setUserName, storedUsername]);
 
   // Sign In
   const handleSignIn = async () => {
@@ -139,16 +139,16 @@ export default function App() {
         {isAuthenticated ? (
           <div>
             <p className="text-sm italic">
-              Hey <span>{username}</span>! Enter the room name you want to join
-              and start talking with people!
+              Enter the room name you want to join and start talking with
+              people!
             </p>
             <button
-              className="bg-gray-600 text-gray-200 px-16 py-2 rounded hover:bg-gray-800 hover:text-white mt-6"
+              className="absolute top-0 right-0 m-2 bg-gray-600 text-gray-200 text-xs py-2 px-16 rounded hover:bg-gray-800 hover:text-white"
               onClick={handleSignOut}
             >
               Sign Out
             </button>
-            <hr className="my-6"></hr>
+            <hr className="mt-6"></hr>
           </div>
         ) : (
           <p className="text-sm italic">
@@ -159,10 +159,10 @@ export default function App() {
 
       {isAuthenticated ? (
         <div>
-          <fieldset className="flex flex-col items-center gap-2">
-            <label for="room" className="italic">
-              Room Name
-            </label>
+          <fieldset className="flex flex-col items-center gap-4 -mt-6">
+            <p className="text-gray-600 text-lg italic">
+              Welcome, {storedUsername}
+            </p>
             <input
               id="room"
               type="text"
@@ -179,7 +179,7 @@ export default function App() {
               }}
             ></input>
             <button
-              className="bg-gray-600 text-gray-200 px-16 py-2 rounded hover:bg-gray-800 hover:text-white mt-6"
+              className="bg-gray-600 text-gray-200 px-16 py-2 rounded hover:bg-gray-800 hover:text-white"
               onClick={() => handleJoin(room)}
             >
               Join
@@ -191,11 +191,11 @@ export default function App() {
           <h2 className="underline font-bold text-center mb-6">
             Popular Rooms
           </h2>
-          <div className="w-full text-center flex flex-row flex-wrap justify-center gap-4">
+          <div className="w-full text-center flex flex-row flex-wrap justify-center gap-6">
             {rooms.map((room) => (
               <div
                 key={room.name}
-                className="p-4 bg-gray-100 rounded shadow mb-4 cursor-pointer hover:bg-gray-200"
+                className="px-6 py-5 bg-gray-200 rounded shadow mb-4 cursor-pointer hover:bg-gray-300"
                 onClick={() => handleJoin(room.name)}
               >
                 <p>
